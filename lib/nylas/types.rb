@@ -13,7 +13,7 @@ module Nylas
         object
       end
 
-      def serialize(object)
+      def serialize(object, enforce_read_only: false)
         object
       end
 
@@ -21,14 +21,14 @@ module Nylas
         object
       end
 
-      def serialize_for_api(object)
+      def serialize_for_api(object, enforce_read_only: true)
         serialize(object)
       end
     end
 
     # Casts/Serializes data that is persisted and used natively as a Hash
     class HashType < ValueType
-      def serialize(object)
+      def serialize(object, enforce_read_only: false)
         object.to_h
       end
 
@@ -49,12 +49,12 @@ module Nylas
         self.model = model
       end
 
-      def serialize(object)
+      def serialize(object, enforce_read_only: false)
         object.to_h
       end
 
-      def serialize_for_api(object)
-        object&.to_h(enforce_read_only: true)
+      def serialize_for_api(object, enforce_read_only: true)
+        object&.to_h(enforce_read_only: enforce_read_only)
       end
 
       def cast(value)
@@ -95,7 +95,7 @@ module Nylas
         cast(object)
       end
 
-      def serialize(object)
+      def serialize(object, enforce_read_only: false)
         return nil if object.nil?
 
         object.to_i
@@ -111,7 +111,7 @@ module Nylas
         Date.parse(value)
       end
 
-      def serialize(value)
+      def serialize(value, enforce_read_only: false)
         return value.iso8601 if value.respond_to?(:iso8601)
 
         value

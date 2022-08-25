@@ -54,8 +54,8 @@ module Nylas
       # Serialize the object to an API-compatible JSON string
       # @param keys [Array<String>] The keys included
       # @return [String] The serialized object as a JSON string
-      def serialize_for_api(keys: attribute_definitions.keys)
-        serialize(keys: keys, enforce_read_only: true)
+      def serialize_for_api(keys: attribute_definitions.keys, enforce_read_only: true)
+        serialize(keys: keys, enforce_read_only: enforce_read_only)
       end
 
       def serialize_all_for_api(keys: attribute_definitions.keys)
@@ -86,11 +86,18 @@ module Nylas
       # @return [nil | Hash] The appropriately serialized value
       def attribute_to_hash(key, enforce_read_only)
         attribute_definition = attribute_definitions[key]
-        if enforce_read_only
-          attribute_definition.read_only == true ? nil : attribute_definition.serialize_for_api(self[key])
+        enforce_read_only_value = enforce_read_only_for_key(enforce_read_only, key: key)
+        if enforce_read_only_value
+          attribute_definition.read_only == true ? nil : attribute_definition.serialize_for_api(self[key], enforce_read_only: enforce_read_only_value)
         else
-          attribute_definition.serialize(self[key])
+          attribute_definition.serialize(self[key], enforce_read_only: enforce_read_only_value)
         end
+      end
+
+      def enforce_read_only_for_key(enforce_read_only_value, key:)
+        return enforce_read_only_value if [true, false].include?(enforce_read_only_value)
+
+        enforce_read_only_value.to_h.fetch(key){ false }
       end
     end
   end

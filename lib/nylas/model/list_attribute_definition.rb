@@ -20,15 +20,11 @@ module Nylas
 
       def serialize(list, enforce_read_only: false)
         list = default if list.nil? || list.empty?
-        if enforce_read_only
-          list.map { |item| type.serialize_for_api(item) }
-        else
-          list.map { |item| type.serialize(item) }
-        end
+        list.map { |item| type.serialize_for_api(item, enforce_read_only: enforce_read_only) }
       end
 
-      def serialize_for_api(list)
-        serialize(list, enforce_read_only: true)
+      def serialize_for_api(list, enforce_read_only: true)
+        serialize(list, enforce_read_only: enforce_read_only)
       end
 
       def type
