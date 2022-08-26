@@ -61,6 +61,25 @@ module Nylas
       super
     end
 
+    # Override the base Model#create method to build the payload without
+    # enforcing the read-only status on the participants. This allows setting
+    # status on create (which the API allows) and not setting it on update
+    # (which the API forbids).
+    def create
+      raise ModelNotCreatableError, self unless creatable?
+
+      payload = attributes.serialize_for_api(enforce_read_only: { participants: { status: false }})
+      execute(
+        method: :post,
+        payload: payload,
+        path: resources_path,
+        query: query_params
+      )
+    rescue ArgumentError => ex
+      binding.pry
+      raise ex
+    end
+
     def rsvp(status, notify_participants:)
       rsvp = Rsvp.new(api: api, status: status, notify_participants: notify_participants,
                       event_id: id, account_id: account_id)
